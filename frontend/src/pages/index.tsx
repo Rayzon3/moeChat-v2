@@ -11,7 +11,8 @@ export default function Home() {
   console.log("session: ", session)
 
   const reloadSession = () => {
-
+    const event = new Event("visibilitychange")
+    document.dispatchEvent(event)
   }
 
   return (
