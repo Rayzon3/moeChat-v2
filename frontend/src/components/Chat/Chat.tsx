@@ -1,13 +1,19 @@
-import { Button } from "@chakra-ui/react"
+import { Button, Flex } from "@chakra-ui/react"
+import { Session } from "next-auth"
 import { signOut } from "next-auth/react"
+import CoversationsWrapper from "./Conversations/CoversationsWrapper"
+import FeedWrapper from "./Feed/FeedWrapper"
 
-interface IChatProps {}
+interface ChatProps {
+    session: Session
+}
 
-const Chat: React.FC<IChatProps> = (props) => {
+const Chat: React.FC<ChatProps> = ({ session }) => {
     return (
-        <div>
-            <Button onClick={() => signOut()}>Logout</Button>
-        </div>
+        <Flex height="100vh">
+            <CoversationsWrapper session={session} />
+            <FeedWrapper session={session} />
+        </Flex>
     )
 }
 
