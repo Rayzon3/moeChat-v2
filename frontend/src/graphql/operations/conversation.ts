@@ -1,7 +1,6 @@
 import { gql } from "@apollo/client";
 
 const CoversationFields = `
-  conversations {
     id
     participants {
       user {
@@ -20,7 +19,6 @@ const CoversationFields = `
       createdAt
     }
     updatedAt
-  }
 `;
 
 // eslint-disable-next-line import/no-anonymous-default-export
@@ -28,7 +26,9 @@ export default {
   Queries: {
     conversations: gql`
       query Coversations {
-        ${CoversationFields}
+        conversations {
+          ${CoversationFields}
+        }
       }
     `,
   },
@@ -41,5 +41,13 @@ export default {
       }
     `,
   },
-  Subscriptions: {},
+  Subscriptions: {
+    coversationCreated: gql`
+      subscription ConversationCreated {
+        coversationCreated {
+          ${CoversationFields}
+        }
+      }
+    `
+  },
 };

@@ -47,7 +47,7 @@ const resolver = {
       args: { participantIds: Array<string> },
       context: GraphQLContext
     ): Promise<{ conversationId: string }> => {
-      const { session, prisma } = context;
+      const { session, prisma, pubsub } = context;
       const { participantIds } = args;
 
       console.log("IDS: ", participantIds);
@@ -76,6 +76,9 @@ const resolver = {
         });
 
         //emit a COVERSATION_CREATED event using pubsub
+        pubsub.publish("CONVERSATION_CREATED", {
+          conversationCreated: conversation
+        })
 
         return {
           conversationId: conversation.id,
@@ -86,6 +89,15 @@ const resolver = {
       }
     },
   },
+  Subscription: {
+    conversationCreated: {
+      subscribe: (_: any, __: any, context: GraphQLContext) => {
+        const { pubsub } = context
+        //listen to event
+        return pubsub.asyncIterator(["CONVERSATION_CREATED"])
+      }
+    }
+  }
 };
 
 export const participantPopulated =

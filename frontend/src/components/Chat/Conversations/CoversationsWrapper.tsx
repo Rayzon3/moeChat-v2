@@ -3,8 +3,10 @@ import { Box } from "@chakra-ui/react";
 import { Session } from "next-auth";
 
 import ConversationsList from "./ConversationList";
-import CoversationOperations from "../../../graphql/operations/conversation";
+import ConversationOperations from "../../../graphql/operations/conversation";
 import { ConversationsData } from "../../../util/types";
+import { ConversationPopulated } from "../../../../../backend/src/utils/types";
+import { useEffect } from "react";
 
 interface ConversationsWrapperProps {
   session: Session;
@@ -17,14 +19,51 @@ const CoversationsWrapper: React.FC<ConversationsWrapperProps> = ({
     data: conversationsData,
     loading: coversationsLoading,
     error: coversationsError,
-  } = useQuery<ConversationsData, null>(CoversationOperations.Queries.conversations);
+    subscribeToMore,
+  } = useQuery<ConversationsData, null>(
+    ConversationOperations.Queries.conversations
+  );
 
-  console.log("Coversations Data: ", conversationsData )
+  console.log("Query Data: ", conversationsData)
+
+  const subscribeToNewConversations = () => {
+    subscribeToMore({
+      document: ConversationOperations.Subscriptions.coversationCreated,
+      updateQuery: (
+        prev,
+        {
+          subscriptionData,
+        }: {
+          subscriptionData: {
+            data: { conversationCreated: ConversationPopulated };
+          };
+        }
+      ) => {
+        if (!subscriptionData.data) return prev;
+        const newConversation = subscriptionData.data.conversationCreated;
+
+        return Object.assign({}, prev, {
+          conversations: [newConversation, ...prev.conversations],
+        });
+      },
+    });
+  };
+
+  //fire once when component mounts
+  useEffect(() => {
+    subscribeToNewConversations()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  console.log("Coversations Data: ", conversationsData);
 
   return (
     <Box width={{ base: "100%", md: "400px" }} bg="whiteAlpha.50" py={6} px={3}>
       {/* Skeleton Loader */}
-      <ConversationsList session={session} conversations={conversationsData?.conversations || []} />
+      <ConversationsList
+        session={session}
+        conversations={conversationsData?.conversations || []}
+      />
     </Box>
   );
 };
