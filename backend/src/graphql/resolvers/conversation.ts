@@ -94,7 +94,7 @@ const resolver = {
       subscribe: (_: any, __: any, context: GraphQLContext) => {
         const { pubsub } = context
         //listen to event
-        return pubsub.asyncIterator(["CONVERSATION_CREATED"])
+        return pubsub.asyncIterator(['CONVERSATION_CREATED'])
       }
     }
   }

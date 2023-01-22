@@ -24,11 +24,9 @@ const CoversationsWrapper: React.FC<ConversationsWrapperProps> = ({
     ConversationOperations.Queries.conversations
   );
 
-  console.log("Query Data: ", conversationsData)
-
   const subscribeToNewConversations = () => {
     subscribeToMore({
-      document: ConversationOperations.Subscriptions.coversationCreated,
+      document: ConversationOperations.Subscriptions.conversationCreated,
       updateQuery: (
         prev,
         {
@@ -48,6 +46,10 @@ const CoversationsWrapper: React.FC<ConversationsWrapperProps> = ({
       },
     });
   };
+
+  console.log("Query Data: ", conversationsData)
+
+  
 
   //fire once when component mounts
   useEffect(() => {
