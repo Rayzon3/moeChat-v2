@@ -42,9 +42,9 @@ export default {
     `,
   },
   Subscriptions: {
-    coversationCreated: gql`
+    conversationCreated: gql`
       subscription ConversationCreated {
-        coversationCreated {
+        conversationCreated {
           ${CoversationFields}
         }
       }

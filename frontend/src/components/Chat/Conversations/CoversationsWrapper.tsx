@@ -7,6 +7,7 @@ import ConversationOperations from "../../../graphql/operations/conversation";
 import { ConversationsData } from "../../../util/types";
 import { ConversationPopulated } from "../../../../../backend/src/utils/types";
 import { useEffect } from "react";
+import { useRouter } from "next/router";
 
 interface ConversationsWrapperProps {
   session: Session;
@@ -23,12 +24,18 @@ const CoversationsWrapper: React.FC<ConversationsWrapperProps> = ({
   } = useQuery<ConversationsData, null>(
     ConversationOperations.Queries.conversations
   );
+  const router = useRouter();
+  const {
+    query: { conversationId },
+  } = router;
 
-  console.log("Query Data: ", conversationsData)
+  const onViewConversation = async (conversationId: string) => {
+    router.push({ query: { conversationId } });
+  };
 
   const subscribeToNewConversations = () => {
     subscribeToMore({
-      document: ConversationOperations.Subscriptions.coversationCreated,
+      document: ConversationOperations.Subscriptions.conversationCreated,
       updateQuery: (
         prev,
         {
@@ -49,20 +56,29 @@ const CoversationsWrapper: React.FC<ConversationsWrapperProps> = ({
     });
   };
 
+  console.log("Query Data: ", conversationsData);
+
   //fire once when component mounts
   useEffect(() => {
-    subscribeToNewConversations()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    subscribeToNewConversations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   console.log("Coversations Data: ", conversationsData);
 
   return (
-    <Box width={{ base: "100%", md: "400px" }} bg="whiteAlpha.50" py={6} px={3}>
+    <Box
+      width={{ base: "100%", md: "400px" }}
+      bg="whiteAlpha.50"
+      py={6}
+      px={3}
+      display={{ base: conversationId ? "none" : "flex", md: "flex" }}
+    >
       {/* Skeleton Loader */}
       <ConversationsList
         session={session}
         conversations={conversationsData?.conversations || []}
+        onViewConversation={onViewConversation}
       />
     </Box>
   );

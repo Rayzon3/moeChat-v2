@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { ApolloError } from "apollo-server-core";
+import { withFilter } from "graphql-subscriptions";
 
 import { ConversationPopulated, GraphQLContext } from "../../utils/types";
 
@@ -31,10 +32,10 @@ const resolver = {
               },
             },
           },
-          include: conversationPopulated
+          include: conversationPopulated,
         });
 
-        return conversations
+        return conversations;
       } catch (error: any) {
         console.log("Conversations Error: ", error);
         throw new ApolloError(error.message);
@@ -77,8 +78,8 @@ const resolver = {
 
         //emit a COVERSATION_CREATED event using pubsub
         pubsub.publish("CONVERSATION_CREATED", {
-          conversationCreated: conversation
-        })
+          conversationCreated: conversation,
+        });
 
         return {
           conversationId: conversation.id,
@@ -91,14 +92,36 @@ const resolver = {
   },
   Subscription: {
     conversationCreated: {
-      subscribe: (_: any, __: any, context: GraphQLContext) => {
-        const { pubsub } = context
-        //listen to event
-        return pubsub.asyncIterator(["CONVERSATION_CREATED"])
-      }
-    }
-  }
+      subscribe: withFilter(
+        (_: any, __: any, context: GraphQLContext) => {
+          const { pubsub } = context;
+          //listen to event
+          return pubsub.asyncIterator(["CONVERSATION_CREATED"]);
+        },
+        (
+          payload: ConversationCreatedSubscriptionPayload,
+          _: any,
+          context: GraphQLContext
+        ) => {
+          const { session } = context;
+          const {
+            conversationCreated: { participants },
+          } = payload;
+
+          const userIsParticipant = !!participants.find(
+            (p) => p.id === session?.user.id
+          );
+
+          return userIsParticipant
+        }
+      ),
+    },
+  },
 };
+
+export interface ConversationCreatedSubscriptionPayload {
+  conversationCreated: ConversationPopulated;
+}
 
 export const participantPopulated =
   Prisma.validator<Prisma.ConversationParticipantInclude>()({
